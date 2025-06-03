@@ -324,6 +324,12 @@
 
             async startScanning() {
                 try {
+                    // Check if we're on HTTPS or localhost
+                    if (!this.isSecureContext()) {
+                        this.showHTTPSWarning();
+                        return;
+                    }
+
                     this.showStatus('Starting camera...', 'info');
                     
                     this.scanner = new QrScanner(
@@ -344,7 +350,53 @@
                     
                 } catch (error) {
                     console.error('Camera error:', error);
-                    this.showStatus('Camera access denied. Please allow camera permission and try again.', 'error');
+                    if (error.name === 'NotAllowedError') {
+                        this.showStatus('Camera access denied. Please allow camera permission and try again.', 'error');
+                    } else if (error.name === 'NotSupportedError') {
+                        this.showHTTPSWarning();
+                    } else {
+                        this.showStatus('Camera error: ' + error.message, 'error');
+                    }
+                }
+            }
+
+            isSecureContext() {
+                return window.isSecureContext || 
+                       location.protocol === 'https:' || 
+                       location.hostname === 'localhost' ||
+                       location.hostname === '127.0.0.1';
+            }
+
+            showHTTPSWarning() {
+                this.showStatus('⚠️ Camera requires HTTPS. Please host this file on a secure server or use localhost.', 'error');
+                
+                // Add manual input option
+                const manualInputHTML = `
+                    <div style="margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                        <h4 style="margin-bottom: 10px;">Manual QR Code Entry:</h4>
+                        <input type="text" id="manual-qr-input" placeholder="Enter QR code manually" 
+                               style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px;">
+                        <button onclick="umbrellaTracker.handleManualInput()" class="btn btn-primary" style="margin: 0;">
+                            Add Entry
+                        </button>
+                    </div>
+                `;
+                
+                if (!document.getElementById('manual-input-section')) {
+                    const container = document.querySelector('.main-content');
+                    container.insertAdjacentHTML('beforeend', `<div id="manual-input-section">${manualInputHTML}</div>`);
+                }
+            }
+
+            handleManualInput() {
+                const input = document.getElementById('manual-qr-input');
+                const qrData = input.value.trim();
+                
+                if (qrData) {
+                    this.handleScanResult(qrData);
+                    input.value = '';
+                } else {
+                    this.showStatus('Please enter a QR code value', 'error');
                 }
             }
 
@@ -448,7 +500,7 @@
 
         // Initialize the app when page loads
         document.addEventListener('DOMContentLoaded', () => {
-            new UmbrellaTracker();
+            window.umbrellaTracker = new UmbrellaTracker();
         });
     </script>
 </body>

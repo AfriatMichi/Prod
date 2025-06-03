@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Umbrella Rental Tracker</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qr-scanner/1.4.2/qr-scanner.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .main-content {
+            padding: 30px 20px;
+        }
+
+        #video-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            background: #000;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        #qr-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .scan-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            border: 3px solid #4CAF50;
+            border-radius: 15px;
+            box-shadow: 0 0 0 9999px rgba(0,0,0,0.5);
+        }
+
+        .scan-overlay::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            border: 3px solid #4CAF50;
+            border-radius: 15px;
+            animation: scanPulse 2s infinite;
+        }
+
+        @keyframes scanPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .btn {
+            width: 100%;
+            padding: 18px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            box-shadow: 0 8px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+            color: white;
+            box-shadow: 0 8px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .status-message {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 500;
+            text-align: center;
+            display: none;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-info {
+            background: #cce7ff;
+            color: #004085;
+            border: 1px solid #b8daff;
+        }
+
+        .rental-list {
+            margin-top: 30px;
+        }
+
+        .rental-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #4CAF50;
+            animation: slideIn 0.3s ease;
+        }
+
+        .rental-item.returned {
+            border-left-color: #6c757d;
+            opacity: 0.7;
+        }
+
+        .rental-code {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .rental-time {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .rental-status {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 12px;
+            display: inline-block;
+            margin-top: 5px;
+        }
+
+        .status-out {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-returned {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stats {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            flex: 1;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #4CAF50;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .main-content {
+                padding: 20px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>☂️ Umbrella Tracker</h1>
+            <p>Scan QR codes to track umbrella rentals</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="total-out">0</div>
+                    <div class="stat-label">Out</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="total-returned">0</div>
+                    <div class="stat-label">Returned</div>
+                </div>
+            </div>
+
+            <div id="status-message" class="status-message"></div>
+            
+            <div id="video-container">
+                <video id="qr-video"></video>
+                <div class="scan-overlay"></div>
+            </div>
+            
+            <button id="start-scan" class="btn btn-primary">
+                📱 Start Scanning
+            </button>
+            
+            <button id="stop-scan" class="btn btn-secondary" style="display: none;">
+                ⏹️ Stop Scanning
+            </button>
+            
+            <div class="rental-list">
+                <h3 style="margin-bottom: 15px; color: #333;">Recent Activity</h3>
+                <div id="rental-items"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class UmbrellaTracker {
+            constructor() {
+                this.scanner = null;
+                this.rentals = this.loadRentals();
+                this.initializeElements();
+                this.setupEventListeners();
+                this.updateDisplay();
+            }
+
+            initializeElements() {
+                this.startBtn = document.getElementById('start-scan');
+                this.stopBtn = document.getElementById('stop-scan');
+                this.videoContainer = document.getElementById('video-container');
+                this.video = document.getElementById('qr-video');
+                this.statusMessage = document.getElementById('status-message');
+                this.rentalItems = document.getElementById('rental-items');
+                this.totalOut = document.getElementById('total-out');
+                this.totalReturned = document.getElementById('total-returned');
+            }
+
+            setupEventListeners() {
+                this.startBtn.addEventListener('click', () => this.startScanning());
+                this.stopBtn.addEventListener('click', () => this.stopScanning());
+            }
+
+            async startScanning() {
+                try {
+                    this.showStatus('Starting camera...', 'info');
+                    
+                    this.scanner = new QrScanner(
+                        this.video,
+                        (result) => this.handleScanResult(result.data),
+                        {
+                            highlightScanRegion: true,
+                            highlightCodeOutline: true,
+                        }
+                    );
+
+                    await this.scanner.start();
+                    
+                    this.startBtn.style.display = 'none';
+                    this.stopBtn.style.display = 'block';
+                    this.videoContainer.style.display = 'block';
+                    this.showStatus('Camera ready! Point at QR code', 'info');
+                    
+                } catch (error) {
+                    console.error('Camera error:', error);
+                    this.showStatus('Camera access denied. Please allow camera permission and try again.', 'error');
+                }
+            }
+
+            stopScanning() {
+                if (this.scanner) {
+                    this.scanner.stop();
+                    this.scanner.destroy();
+                    this.scanner = null;
+                }
+                
+                this.startBtn.style.display = 'block';
+                this.stopBtn.style.display = 'none';
+                this.videoContainer.style.display = 'none';
+                this.hideStatus();
+            }
+
+            handleScanResult(qrData) {
+                const existingRental = this.findRental(qrData);
+                
+                if (existingRental && existingRental.status === 'out') {
+                    // Umbrella is being returned
+                    existingRental.status = 'returned';
+                    existingRental.returnTime = new Date().toISOString();
+                    this.showStatus(`✅ Umbrella ${qrData} returned successfully!`, 'success');
+                } else if (!existingRental) {
+                    // New umbrella rental
+                    this.rentals.unshift({
+                        code: qrData,
+                        rentTime: new Date().toISOString(),
+                        status: 'out'
+                    });
+                    this.showStatus(`📤 Umbrella ${qrData} checked out!`, 'success');
+                } else {
+                    // Already returned
+                    this.showStatus(`ℹ️ Umbrella ${qrData} was already returned`, 'info');
+                }
+                
+                this.saveRentals();
+                this.updateDisplay();
+                
+                // Auto-hide status after 3 seconds
+                setTimeout(() => this.hideStatus(), 3000);
+            }
+
+            findRental(code) {
+                return this.rentals.find(rental => rental.code === code);
+            }
+
+            loadRentals() {
+                try {
+                    return JSON.parse(localStorage.getItem('umbrellaRentals')) || [];
+                } catch {
+                    return [];
+                }
+            }
+
+            saveRentals() {
+                localStorage.setItem('umbrellaRentals', JSON.stringify(this.rentals));
+            }
+
+            updateDisplay() {
+                const outCount = this.rentals.filter(r => r.status === 'out').length;
+                const returnedCount = this.rentals.filter(r => r.status === 'returned').length;
+                
+                this.totalOut.textContent = outCount;
+                this.totalReturned.textContent = returnedCount;
+                
+                this.rentalItems.innerHTML = this.rentals
+                    .slice(0, 10) // Show last 10 transactions
+                    .map(rental => this.createRentalItemHTML(rental))
+                    .join('');
+            }
+
+            createRentalItemHTML(rental) {
+                const rentTime = new Date(rental.rentTime).toLocaleString();
+                const returnTime = rental.returnTime ? 
+                    new Date(rental.returnTime).toLocaleString() : null;
+                
+                return `
+                    <div class="rental-item ${rental.status === 'returned' ? 'returned' : ''}">
+                        <div class="rental-code">🏷️ ${rental.code}</div>
+                        <div class="rental-time">Rented: ${rentTime}</div>
+                        ${returnTime ? `<div class="rental-time">Returned: ${returnTime}</div>` : ''}
+                        <span class="rental-status status-${rental.status === 'out' ? 'out' : 'returned'}">
+                            ${rental.status === 'out' ? '📤 Out' : '✅ Returned'}
+                        </span>
+                    </div>
+                `;
+            }
+
+            showStatus(message, type) {
+                this.statusMessage.textContent = message;
+                this.statusMessage.className = `status-message status-${type}`;
+                this.statusMessage.style.display = 'block';
+            }
+
+            hideStatus() {
+                this.statusMessage.style.display = 'none';
+            }
+        }
+
+        // Initialize the app when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new UmbrellaTracker();
+        });
+    </script>
+</body>
+</html>

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Umbrella Rental Tracker</title>
+    <title>מעקב השכרת מטריות</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qr-scanner/1.4.2/qr-scanner.umd.min.js"></script>
     <style>
         * {
@@ -20,7 +20,7 @@
         }
 
         .container {
-            max-width: 400px;
+            max-width: 450px;
             margin: 0 auto;
             background: white;
             border-radius: 20px;
@@ -131,6 +131,17 @@
             box-shadow: 0 12px 20px rgba(255, 107, 107, 0.4);
         }
 
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+            color: white;
+            box-shadow: 0 8px 15px rgba(255, 193, 7, 0.3);
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 20px rgba(255, 193, 7, 0.4);
+        }
+
         .status-message {
             padding: 15px;
             border-radius: 10px;
@@ -138,6 +149,18 @@
             font-weight: 500;
             text-align: center;
             display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .status-success {
@@ -158,6 +181,12 @@
             border: 1px solid #b8daff;
         }
 
+        .status-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
         .rental-list {
             margin-top: 30px;
         }
@@ -167,43 +196,53 @@
             border-radius: 10px;
             padding: 15px;
             margin-bottom: 10px;
-            border-left: 4px solid #4CAF50;
             animation: slideIn 0.3s ease;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .rental-item.out {
+            border-right: 4px solid #ff6b6b;
+            background: linear-gradient(90deg, #fff5f5 0%, #f8f9fa 100%);
         }
 
         .rental-item.returned {
-            border-left-color: #6c757d;
-            opacity: 0.7;
+            border-right: 4px solid #4CAF50;
+            background: linear-gradient(90deg, #f0f8f0 0%, #f8f9fa 100%);
         }
 
         .rental-code {
             font-weight: 600;
             color: #333;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            font-size: 16px;
         }
 
         .rental-time {
-            font-size: 12px;
+            font-size: 13px;
             color: #666;
+            margin-bottom: 3px;
         }
 
         .rental-status {
             font-size: 12px;
             font-weight: 600;
-            padding: 3px 8px;
-            border-radius: 12px;
+            padding: 4px 10px;
+            border-radius: 15px;
             display: inline-block;
-            margin-top: 5px;
+            margin-top: 8px;
         }
 
         .status-out {
-            background: #fff3cd;
-            color: #856404;
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
         }
 
         .status-returned {
-            background: #d1ecf1;
-            color: #0c5460;
+            background: #e8f5e8;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
         }
 
         @keyframes slideIn {
@@ -220,27 +259,95 @@
         .stats {
             display: flex;
             gap: 15px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
 
         .stat-card {
             flex: 1;
             background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
+            padding: 20px 15px;
+            border-radius: 12px;
             text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card.out-stat {
+            border-color: #ff6b6b;
+            background: linear-gradient(135deg, #fff5f5 0%, #f8f9fa 100%);
+        }
+
+        .stat-card.returned-stat {
+            border-color: #4CAF50;
+            background: linear-gradient(135deg, #f0f8f0 0%, #f8f9fa 100%);
         }
 
         .stat-number {
-            font-size: 24px;
+            font-size: 28px;
             font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-card.out-stat .stat-number {
+            color: #ff6b6b;
+        }
+
+        .stat-card.returned-stat .stat-number {
             color: #4CAF50;
         }
 
         .stat-label {
-            font-size: 12px;
+            font-size: 13px;
             color: #666;
-            margin-top: 5px;
+            font-weight: 600;
+        }
+
+        .action-info {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #1565c0;
+            font-weight: 500;
+        }
+
+        .manual-input-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 2px dashed #dee2e6;
+        }
+
+        .manual-input-section h4 {
+            margin-bottom: 15px;
+            color: #495057;
+            text-align: center;
+        }
+
+        .manual-input-section input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .clear-data-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #fff3cd;
+            border-radius: 12px;
+            border: 1px solid #ffeaa7;
+            text-align: center;
+        }
+
+        .clear-data-section h4 {
+            color: #856404;
+            margin-bottom: 10px;
         }
 
         @media (max-width: 480px) {
@@ -252,26 +359,39 @@
             .main-content {
                 padding: 20px 15px;
             }
+            
+            .stats {
+                gap: 10px;
+            }
+            
+            .stat-card {
+                padding: 15px 10px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>☂️ Umbrella Tracker</h1>
-            <p>Scan QR codes to track umbrella rentals</p>
+            <h1>☂️ מעקב מטריות</h1>
+            <p>סרוק QR למסירה והחזרה</p>
         </div>
         
         <div class="main-content">
             <div class="stats">
-                <div class="stat-card">
+                <div class="stat-card out-stat">
                     <div class="stat-number" id="total-out">0</div>
-                    <div class="stat-label">Out</div>
+                    <div class="stat-label">בחוץ</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card returned-stat">
                     <div class="stat-number" id="total-returned">0</div>
-                    <div class="stat-label">Returned</div>
+                    <div class="stat-label">הוחזרו</div>
                 </div>
+            </div>
+
+            <div class="action-info">
+                💡 <strong>סריקה ראשונה:</strong> מסירת מטריה<br>
+                💡 <strong>סריקה שנייה:</strong> החזרת מטריה
             </div>
 
             <div id="status-message" class="status-message"></div>
@@ -282,16 +402,26 @@
             </div>
             
             <button id="start-scan" class="btn btn-primary">
-                📱 Start Scanning
+                📱 התחל סריקה
             </button>
             
             <button id="stop-scan" class="btn btn-secondary" style="display: none;">
-                ⏹️ Stop Scanning
+                ⏹️ הפסק סריקה
             </button>
             
             <div class="rental-list">
-                <h3 style="margin-bottom: 15px; color: #333;">Recent Activity</h3>
+                <h3 style="margin-bottom: 15px; color: #333; text-align: center;">פעילות אחרונה</h3>
                 <div id="rental-items"></div>
+            </div>
+            
+            <div class="clear-data-section">
+                <h4>ניקוי נתונים</h4>
+                <button id="clear-returned" class="btn btn-warning" style="margin: 5px;">
+                    🗑️ נקה מטריות שהוחזרו
+                </button>
+                <button id="clear-all" class="btn btn-secondary" style="margin: 5px;">
+                    🗑️ נקה הכל
+                </button>
             </div>
         </div>
     </div>
@@ -315,22 +445,25 @@
                 this.rentalItems = document.getElementById('rental-items');
                 this.totalOut = document.getElementById('total-out');
                 this.totalReturned = document.getElementById('total-returned');
+                this.clearReturnedBtn = document.getElementById('clear-returned');
+                this.clearAllBtn = document.getElementById('clear-all');
             }
 
             setupEventListeners() {
                 this.startBtn.addEventListener('click', () => this.startScanning());
                 this.stopBtn.addEventListener('click', () => this.stopScanning());
+                this.clearReturnedBtn.addEventListener('click', () => this.clearReturnedItems());
+                this.clearAllBtn.addEventListener('click', () => this.clearAllItems());
             }
 
             async startScanning() {
                 try {
-                    // Check if we're on HTTPS or localhost
                     if (!this.isSecureContext()) {
                         this.showHTTPSWarning();
                         return;
                     }
 
-                    this.showStatus('Starting camera...', 'info');
+                    this.showStatus('מתחיל מצלמה...', 'info');
                     
                     this.scanner = new QrScanner(
                         this.video,
@@ -346,16 +479,16 @@
                     this.startBtn.style.display = 'none';
                     this.stopBtn.style.display = 'block';
                     this.videoContainer.style.display = 'block';
-                    this.showStatus('Camera ready! Point at QR code', 'info');
+                    this.showStatus('מצלמה מוכנה! כוון אל קוד QR', 'info');
                     
                 } catch (error) {
                     console.error('Camera error:', error);
                     if (error.name === 'NotAllowedError') {
-                        this.showStatus('Camera access denied. Please allow camera permission and try again.', 'error');
+                        this.showStatus('גישה למצלמה נדחתה. אנא אפשר גישה למצלמה ונסה שוב.', 'error');
                     } else if (error.name === 'NotSupportedError') {
                         this.showHTTPSWarning();
                     } else {
-                        this.showStatus('Camera error: ' + error.message, 'error');
+                        this.showStatus('שגיאת מצלמה: ' + error.message, 'error');
                     }
                 }
             }
@@ -368,23 +501,21 @@
             }
 
             showHTTPSWarning() {
-                this.showStatus('⚠️ Camera requires HTTPS. Please host this file on a secure server or use localhost.', 'error');
+                this.showStatus('⚠️ המצלמה דורשת HTTPS. אנא העלה את הקובץ לשרת מאובטח או השתמש ב-localhost.', 'error');
                 
-                // Add manual input option
                 const manualInputHTML = `
-                    <div style="margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
-                        <h4 style="margin-bottom: 10px;">Manual QR Code Entry:</h4>
-                        <input type="text" id="manual-qr-input" placeholder="Enter QR code manually" 
-                               style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px;">
+                    <div class="manual-input-section" id="manual-input-section">
+                        <h4>הזנה ידנית של קוד QR:</h4>
+                        <input type="text" id="manual-qr-input" placeholder="הזן קוד QR ידנית" />
                         <button onclick="umbrellaTracker.handleManualInput()" class="btn btn-primary" style="margin: 0;">
-                            Add Entry
+                            הוסף רישום
                         </button>
                     </div>
                 `;
                 
                 if (!document.getElementById('manual-input-section')) {
                     const container = document.querySelector('.main-content');
-                    container.insertAdjacentHTML('beforeend', `<div id="manual-input-section">${manualInputHTML}</div>`);
+                    container.insertAdjacentHTML('beforeend', manualInputHTML);
                 }
             }
 
@@ -396,7 +527,7 @@
                     this.handleScanResult(qrData);
                     input.value = '';
                 } else {
-                    this.showStatus('Please enter a QR code value', 'error');
+                    this.showStatus('אנא הזן ערך קוד QR', 'error');
                 }
             }
 
@@ -414,35 +545,108 @@
             }
 
             handleScanResult(qrData) {
-                const existingRental = this.findRental(qrData);
+                const existingRental = this.findActiveRental(qrData);
                 
-                if (existingRental && existingRental.status === 'out') {
-                    // Umbrella is being returned
+                if (existingRental) {
+                    // מטריה בחוץ - מחזירים אותה
                     existingRental.status = 'returned';
                     existingRental.returnTime = new Date().toISOString();
-                    this.showStatus(`✅ Umbrella ${qrData} returned successfully!`, 'success');
-                } else if (!existingRental) {
-                    // New umbrella rental
+                    this.showStatus(`✅ מטריה ${qrData} הוחזרה בהצלחה!`, 'success');
+                    
+                    // נגן צליל הצלחה אם אפשר
+                    this.playSuccessSound();
+                } else {
+                    // מטריה חדשה או שכבר הוחזרה - יוצאת החוצה
                     this.rentals.unshift({
                         code: qrData,
                         rentTime: new Date().toISOString(),
                         status: 'out'
                     });
-                    this.showStatus(`📤 Umbrella ${qrData} checked out!`, 'success');
-                } else {
-                    // Already returned
-                    this.showStatus(`ℹ️ Umbrella ${qrData} was already returned`, 'info');
+                    this.showStatus(`📤 מטריה ${qrData} נמסרה!`, 'warning');
+                    
+                    // נגן צליל אזהרה אם אפשר
+                    this.playWarningSound();
                 }
                 
                 this.saveRentals();
                 this.updateDisplay();
                 
-                // Auto-hide status after 3 seconds
-                setTimeout(() => this.hideStatus(), 3000);
+                // הסתר הודעת סטטוס אחרי 4 שניות
+                setTimeout(() => this.hideStatus(), 4000);
             }
 
-            findRental(code) {
-                return this.rentals.find(rental => rental.code === code);
+            findActiveRental(code) {
+                return this.rentals.find(rental => rental.code === code && rental.status === 'out');
+            }
+
+            playSuccessSound() {
+                try {
+                    // צליל הצלחה פשוט
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                    oscillator.frequency.setValueAtTime(1000, audioContext.currentTime + 0.1);
+                    
+                    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.01);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.3);
+                } catch (e) {
+                    // אם לא מצליח לנגן צליל, לא נורא
+                }
+            }
+
+            playWarningSound() {
+                try {
+                    // צליל אזהרה פשוט
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+                    
+                    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.01);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.4);
+                } catch (e) {
+                    // אם לא מצליח לנגן צליל, לא נורא
+                }
+            }
+
+            clearReturnedItems() {
+                if (confirm('האם אתה בטוח שברצונך למחוק את כל המטריות שהוחזרו?')) {
+                    const returnedCount = this.rentals.filter(r => r.status === 'returned').length;
+                    this.rentals = this.rentals.filter(rental => rental.status === 'out');
+                    this.saveRentals();
+                    this.updateDisplay();
+                    this.showStatus(`🗑️ ${returnedCount} מטריות שהוחזרו נמחקו`, 'info');
+                    setTimeout(() => this.hideStatus(), 3000);
+                }
+            }
+
+            clearAllItems() {
+                if (confirm('האם אתה בטוח שברצונך למחוק את כל הנתונים? פעולה זו לא ניתנת לביטול!')) {
+                    if (confirm('אישור סופי - האם לבטוח לחלוטין למחוק הכל?')) {
+                        this.rentals = [];
+                        this.saveRentals();
+                        this.updateDisplay();
+                        this.showStatus('🗑️ כל הנתונים נמחקו', 'info');
+                        setTimeout(() => this.hideStatus(), 3000);
+                    }
+                }
             }
 
             loadRentals() {
@@ -464,24 +668,29 @@
                 this.totalOut.textContent = outCount;
                 this.totalReturned.textContent = returnedCount;
                 
+                // הצג את 15 הפעולות האחרונות
                 this.rentalItems.innerHTML = this.rentals
-                    .slice(0, 10) // Show last 10 transactions
+                    .slice(0, 15)
                     .map(rental => this.createRentalItemHTML(rental))
                     .join('');
             }
 
             createRentalItemHTML(rental) {
-                const rentTime = new Date(rental.rentTime).toLocaleString();
+                const rentTime = new Date(rental.rentTime).toLocaleString('he-IL');
                 const returnTime = rental.returnTime ? 
-                    new Date(rental.returnTime).toLocaleString() : null;
+                    new Date(rental.returnTime).toLocaleString('he-IL') : null;
+                
+                const statusClass = rental.status === 'out' ? 'out' : 'returned';
+                const statusText = rental.status === 'out' ? '📤 בחוץ' : '✅ הוחזרה';
+                const statusBadgeClass = rental.status === 'out' ? 'status-out' : 'status-returned';
                 
                 return `
-                    <div class="rental-item ${rental.status === 'returned' ? 'returned' : ''}">
-                        <div class="rental-code">🏷️ ${rental.code}</div>
-                        <div class="rental-time">Rented: ${rentTime}</div>
-                        ${returnTime ? `<div class="rental-time">Returned: ${returnTime}</div>` : ''}
-                        <span class="rental-status status-${rental.status === 'out' ? 'out' : 'returned'}">
-                            ${rental.status === 'out' ? '📤 Out' : '✅ Returned'}
+                    <div class="rental-item ${statusClass}">
+                        <div class="rental-code">🏷️ מטריה ${rental.code}</div>
+                        <div class="rental-time">נמסרה: ${rentTime}</div>
+                        ${returnTime ? `<div class="rental-time">הוחזרה: ${returnTime}</div>` : ''}
+                        <span class="rental-status ${statusBadgeClass}">
+                            ${statusText}
                         </span>
                     </div>
                 `;
@@ -498,7 +707,7 @@
             }
         }
 
-        // Initialize the app when page loads
+        // אתחול האפליקציה כשהדף נטען
         document.addEventListener('DOMContentLoaded', () => {
             window.umbrellaTracker = new UmbrellaTracker();
         });
